@@ -1,7 +1,13 @@
 package com.game;
 
-public class Main {
+import javax.swing.SwingUtilities;
+
+import com.game.controllers.GameController;
+
+public final class Main {
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+        SwingUtilities.invokeLater(() -> {
+            new GameController();
+        });
     }
 }
