@@ -1,12 +1,10 @@
-package com.game.views;
+package com.game.scenes;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 
-import javax.swing.JPanel;
-
-public final class VolleyballCourt extends JPanel {
+public final class VolleyballCourt extends BaseScene {
     private final int GROUND_WIDTH = 800;
     private final int GROUND_HEIGHT = 300;
 
@@ -19,6 +17,7 @@ public final class VolleyballCourt extends JPanel {
     protected void paintComponent(Graphics graphics) {
         graphics.setColor(Color.GRAY);
         graphics.fillRect(0, 0, GROUND_WIDTH, GROUND_HEIGHT);
-    }
 
+        super.paintComponent(graphics);
+    }
 }

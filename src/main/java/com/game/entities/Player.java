@@ -1,8 +1,9 @@
 package com.game.entities;
 
+import com.game.contracts.IEntity;
 import com.game.utils.Vector2;
 
-public final class Player {
+public final class Player implements IEntity {
     private final int WIDTH = 50;
     private final int HEIGHT = 50;
 
@@ -15,5 +16,15 @@ public final class Player {
 
     public Player(Vector2 position) {
         this.position = position;
+    }
+
+    @Override
+    public Vector2 getPosition() {
+        return position;
+    }
+
+    @Override
+    public Vector2 getSize() {
+        return size;
     }
 }

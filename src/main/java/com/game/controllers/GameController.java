@@ -2,7 +2,10 @@ package com.game.controllers;
 
 import javax.swing.JFrame;
 
-import com.game.views.VolleyballCourt;
+import com.game.entities.Player;
+import com.game.renderers.PlayerRenderer;
+import com.game.renderers.Renderers;
+import com.game.scenes.VolleyballCourt;
 
 import java.awt.BorderLayout;
 
@@ -16,14 +19,24 @@ public final class GameController {
     private final JFrame _frame;
     private final Timer _thread;
 
+    private final VolleyballCourt _volleyballCourt;
+
     public GameController() {
+        Renderers.addRenderer(Player.class.getName(), new PlayerRenderer());
+
         _frame = new JFrame();
     
         _frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         _frame.setSize(WIDTH, HEIGHT);
         _frame.setResizable(false);
         _frame.setLayout(new BorderLayout());
-        _frame.add(new VolleyballCourt(), BorderLayout.SOUTH);
+
+        _volleyballCourt = new VolleyballCourt();
+
+        _frame.add(_volleyballCourt, BorderLayout.SOUTH);
+
+        _volleyballCourt.addEntity(new Player());
+
         _frame.setVisible(true);
 
         _thread = new Timer(1000 / FRAMES_PER_SECOND, e -> update());
