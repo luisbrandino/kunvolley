@@ -4,7 +4,7 @@ import com.game.contracts.IEntity;
 import com.game.utils.Vector2;
 
 public final class Player implements IEntity {
-    private final int WIDTH = 50;
+    private final int WIDTH = 30;
     private final int HEIGHT = 50;
 
     public Vector2 position;

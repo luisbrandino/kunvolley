@@ -6,6 +6,7 @@ import com.game.entities.Player;
 import com.game.renderers.PlayerRenderer;
 import com.game.renderers.Renderers;
 import com.game.scenes.VolleyballCourt;
+import com.game.utils.Positions;
 
 import java.awt.BorderLayout;
 
@@ -19,7 +20,12 @@ public final class GameController {
     private final JFrame _frame;
     private final Timer _thread;
 
+    private final Player _player;
+    private final Player _ai;
+
     private final VolleyballCourt _volleyballCourt;
+
+    private final PlayerController _playerController;
 
     public GameController() {
         Renderers.addRenderer(Player.class.getName(), new PlayerRenderer());
@@ -33,9 +39,17 @@ public final class GameController {
 
         _volleyballCourt = new VolleyballCourt();
 
+        _player = new Player(Positions.PLAYER_START_POSITION);
+        _ai = new Player(Positions.AI_START_POSITION);
+
         _frame.add(_volleyballCourt, BorderLayout.SOUTH);
 
-        _volleyballCourt.addEntity(new Player());
+        _volleyballCourt.addEntity(_player);
+        _volleyballCourt.addEntity(_ai);
+
+        _playerController = new PlayerController(_player);
+
+        _frame.addKeyListener(_playerController);
 
         _frame.setVisible(true);
 
@@ -45,6 +59,7 @@ public final class GameController {
 
     // called once per frame
     public void update() {
+        _playerController.update();
         _frame.repaint();
     }
 }

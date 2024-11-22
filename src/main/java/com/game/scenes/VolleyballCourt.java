@@ -6,7 +6,7 @@ import java.awt.Graphics;
 
 public final class VolleyballCourt extends BaseScene {
     private final int GROUND_WIDTH = 800;
-    private final int GROUND_HEIGHT = 300;
+    private final int GROUND_HEIGHT = 450;
 
     public VolleyballCourt() {
         super();
