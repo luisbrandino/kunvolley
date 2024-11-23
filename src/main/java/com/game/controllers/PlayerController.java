@@ -7,6 +7,7 @@ import java.awt.event.KeyListener;
 import com.game.entities.Ball;
 import com.game.entities.Player;
 import com.game.enums.GameState;
+import com.game.managers.TurnManager;
 import com.game.settings.PlayerSettings;
 import com.game.utils.RandomGenerator;
 
@@ -78,7 +79,8 @@ public final class PlayerController implements KeyListener {
 
         boolean canServe = 
             pressedKey == _settings.SERVE && 
-            (currentGameState == GameState.FIRST_PLAYER_SERVE || currentGameState == GameState.SECOND_PLAYER_SERVE);
+            (currentGameState == GameState.FIRST_PLAYER_SERVE || currentGameState == GameState.SECOND_PLAYER_SERVE) &&
+            isPlayerTurn();
 
         if (!canServe)
             return;
@@ -86,6 +88,7 @@ public final class PlayerController implements KeyListener {
         float direction = RandomGenerator.nextFloat(-0.5f, 0.5f);
 
         _game.getBall().serve(direction, _settings.SERVE_DIRECTION);
+        _game.getTurnManager().nextTurn();
         _game.setGameState(GameState.PLAYING);
     }
 
@@ -94,6 +97,7 @@ public final class PlayerController implements KeyListener {
         boolean canPass = 
             (pressedKey == _settings.SERVE || pressedKey == KeyEvent.VK_Z) && 
             _game.getGameState() == GameState.PLAYING &&
+            isPlayerTurn() &&
             getPlayerDistanceFromBall(_player, _game.getBall()) <= 45;
 
         if (!canPass)
@@ -102,6 +106,7 @@ public final class PlayerController implements KeyListener {
         float direction = _player.position.x >= 400 ? RandomGenerator.nextFloat(-0.5f, 0f) : RandomGenerator.nextFloat(0f, 0.5f);
 
         _game.getBall().serve(direction, _settings.SERVE_DIRECTION);
+        _game.getTurnManager().nextTurn();
     }
 
     public double getPlayerDistanceFromBall(Player player, Ball ball)
@@ -115,6 +120,11 @@ public final class PlayerController implements KeyListener {
         double ballCenterY = ballRect.getCenterY();
 
         return Math.sqrt(Math.pow(ballCenterX - playerCenterX, 2) + Math.pow(ballCenterY - playerCenterY, 2));
+    }
+
+    public boolean isPlayerTurn()
+    {
+        return _game.getTurnManager().getCurrentPlayer() == _player;
     }
 
     @Override

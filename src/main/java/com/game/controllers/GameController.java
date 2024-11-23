@@ -5,6 +5,7 @@ import javax.swing.JFrame;
 import com.game.entities.Ball;
 import com.game.entities.Player;
 import com.game.enums.GameState;
+import com.game.managers.TurnManager;
 import com.game.renderers.BallRenderer;
 import com.game.renderers.PlayerRenderer;
 import com.game.renderers.Renderers;
@@ -14,6 +15,8 @@ import com.game.utils.Positions;
 
 import java.awt.BorderLayout;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.Timer;
 
@@ -34,6 +37,8 @@ public final class GameController {
     private PlayerController _secondPlayerController;
 
     private GameState _currentGameState;
+
+    private TurnManager _turnManager;
 
     public GameController() {
         Renderers.addRenderer(Player.class.getName(), new PlayerRenderer());
@@ -97,6 +102,13 @@ public final class GameController {
 
         _volleyballCourt.addEntity(_firstPlayer);
         _volleyballCourt.addEntity(_secondPlayer);
+
+        List<Player> players = new ArrayList<Player>();
+
+        players.add(_firstPlayer);
+        players.add(_secondPlayer);
+
+        _turnManager = new TurnManager(players);
     }
 
     private void startRound()
@@ -123,6 +135,11 @@ public final class GameController {
     public Ball getBall()
     {
         return _ball;
+    }
+
+    public TurnManager getTurnManager()
+    {
+        return _turnManager;
     }
 
     // called once per frame
