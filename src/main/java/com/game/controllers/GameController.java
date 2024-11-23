@@ -73,7 +73,7 @@ public final class GameController {
 
     private void setupPlayers()
     {
-        PlayerSettings firstPlayerControlSettings = new PlayerSettings(
+        PlayerSettings firstPlayerSettings = new PlayerSettings(
             KeyEvent.VK_UP,
             KeyEvent.VK_DOWN,
             KeyEvent.VK_RIGHT,
@@ -82,7 +82,7 @@ public final class GameController {
             -1
         );
 
-        PlayerSettings secondPlayerControlSettings = new PlayerSettings(
+        PlayerSettings secondPlayerSettings = new PlayerSettings(
             KeyEvent.VK_W,
             KeyEvent.VK_S,
             KeyEvent.VK_D,
@@ -94,8 +94,8 @@ public final class GameController {
         _firstPlayer = new Player(Positions.FIRST_PLAYER_SERVE_POSITION);
         _secondPlayer = new Player(Positions.SECOND_PLAYER_SERVE_POSITION);
 
-        _firstPlayerController = new PlayerController(this, _firstPlayer, firstPlayerControlSettings);
-        _secondPlayerController = new PlayerController(this, _secondPlayer, secondPlayerControlSettings);
+        _firstPlayerController = new PlayerController(this, _firstPlayer, firstPlayerSettings);
+        _secondPlayerController = new PlayerController(this, _secondPlayer, secondPlayerSettings);
 
         _frame.addKeyListener(_firstPlayerController);
         _frame.addKeyListener(_secondPlayerController);

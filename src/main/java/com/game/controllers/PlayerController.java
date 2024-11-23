@@ -7,7 +7,6 @@ import java.awt.event.KeyListener;
 import com.game.entities.Ball;
 import com.game.entities.Player;
 import com.game.enums.GameState;
-import com.game.managers.TurnManager;
 import com.game.settings.PlayerSettings;
 import com.game.utils.RandomGenerator;
 
@@ -88,6 +87,7 @@ public final class PlayerController implements KeyListener {
         float direction = RandomGenerator.nextFloat(-0.5f, 0.5f);
 
         _game.getBall().serve(direction, _settings.SERVE_DIRECTION);
+        _game.getBall().getBallSoundManager().playRandom();
         _game.getTurnManager().nextTurn();
         _game.setGameState(GameState.PLAYING);
     }
@@ -106,6 +106,7 @@ public final class PlayerController implements KeyListener {
         float direction = _player.position.x >= 400 ? RandomGenerator.nextFloat(-0.5f, 0f) : RandomGenerator.nextFloat(0f, 0.5f);
 
         _game.getBall().serve(direction, _settings.SERVE_DIRECTION);
+        _game.getBall().getBallSoundManager().playRandom();
         _game.getTurnManager().nextTurn();
     }
 

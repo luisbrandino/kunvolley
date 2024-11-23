@@ -1,6 +1,9 @@
 package com.game.entities;
 
+import java.util.Arrays;
+
 import com.game.contracts.IEntity;
+import com.game.managers.SoundManager;
 import com.game.utils.Vector2;
 
 public class Ball implements IEntity { 
@@ -16,6 +19,13 @@ public class Ball implements IEntity {
     private final float BALL_SPEED = 10;
     private final float GRAVITY = 0.25f; 
     private boolean _movingUp = false; 
+
+    private final SoundManager _ballSoundManager = new SoundManager(Arrays.asList(
+        "sounds/ballhit1.wav",
+        "sounds/ballhit2.wav"
+    ));
+
+    public double angle;
 
     public Ball() {
         position = new Vector2(0, 0);
@@ -50,7 +60,16 @@ public class Ball implements IEntity {
             _verticalSpeed += GRAVITY; 
         }
 
+        angle += 10;
+        if (angle >= 360)
+            angle = 0;
+
         position.y += _verticalSpeed;
+    }
+
+    public SoundManager getBallSoundManager()
+    {
+        return _ballSoundManager;
     }
 
     @Override
