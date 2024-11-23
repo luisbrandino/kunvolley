@@ -7,6 +7,7 @@ import com.game.entities.Ball;
 import com.game.entities.Net;
 import com.game.entities.Player;
 import com.game.enums.GameState;
+import com.game.enums.PlayerState;
 import com.game.managers.SoundManager;
 import com.game.managers.TurnManager;
 import com.game.renderers.BallRenderer;
@@ -68,9 +69,11 @@ public final class GameController {
         setupPlayers();
 
         Net net = new Net(Positions.NET_POSITION);
+        
+        _volleyballCourt.addEntity(_secondPlayer);
         _volleyballCourt.addEntity(net);
-
         _volleyballCourt.addEntity(_ball);
+        _volleyballCourt.addEntity(_firstPlayer);
 
         setGameState(GameState.FIRST_PLAYER_SERVE);
 
@@ -110,14 +113,14 @@ public final class GameController {
         _firstPlayer = new Player(Positions.FIRST_PLAYER_SERVE_POSITION);
         _secondPlayer = new Player(Positions.SECOND_PLAYER_SERVE_POSITION);
 
+        _firstPlayer.setState(PlayerState.IDLE_BACK);
+        _secondPlayer.setState(PlayerState.IDLE_FRONT);
+
         _firstPlayerController = new PlayerController(this, _firstPlayer, firstPlayerSettings);
         _secondPlayerController = new PlayerController(this, _secondPlayer, secondPlayerSettings);
 
         _frame.addKeyListener(_firstPlayerController);
         _frame.addKeyListener(_secondPlayerController);
-
-        _volleyballCourt.addEntity(_firstPlayer);
-        _volleyballCourt.addEntity(_secondPlayer);
 
         List<Player> players = new ArrayList<Player>();
 

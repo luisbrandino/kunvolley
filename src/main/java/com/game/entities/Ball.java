@@ -12,12 +12,13 @@ public class Ball implements IEntity {
 
     public Vector2 position;
     public Vector2 size = new Vector2(WIDTH, HEIGHT);
+    private Vector2 _originalSize = new Vector2(WIDTH, HEIGHT);
 
     private float _horizontalSpeed = 0;
     private float _verticalSpeed = 0;
 
     private final float BALL_SPEED = 10;
-    private final float GRAVITY = 0.25f; 
+    private final float GRAVITY = 0.25f;
     private boolean _movingUp = false; 
 
     private final SoundManager _ballSoundManager = new SoundManager(Arrays.asList(
@@ -52,12 +53,14 @@ public class Ball implements IEntity {
 
         position.x += _horizontalSpeed;
 
+        _movingUp = _verticalSpeed > 0;
+
         if (_movingUp) {
             _verticalSpeed -= GRAVITY;
             if (_verticalSpeed <= 0)
                 _movingUp = false;
         } else {
-            _verticalSpeed += GRAVITY; 
+            _verticalSpeed += GRAVITY;
         }
 
         angle += 10;
@@ -80,5 +83,9 @@ public class Ball implements IEntity {
     @Override
     public Vector2 getSize() {
         return size;
+    }
+
+    public Vector2 getOriginalSize() {
+        return _originalSize;
     }
 }

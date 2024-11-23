@@ -7,6 +7,7 @@ import java.awt.event.KeyListener;
 import com.game.entities.Ball;
 import com.game.entities.Player;
 import com.game.enums.GameState;
+import com.game.enums.PlayerState;
 import com.game.settings.PlayerSettings;
 import com.game.utils.RandomGenerator;
 
@@ -53,14 +54,19 @@ public final class PlayerController implements KeyListener {
         if (isServing)
             return;
 
-        if (pressedKey == _settings.MOVE_FORWARD)
+        if (pressedKey == _settings.MOVE_FORWARD) {
             _verticalSpeed = -WALKING_SPEED;
-        else if (pressedKey == _settings.MOVE_BACKWARD)
+            _player.setState(PlayerState.WALKING_BACK);
+        } else if (pressedKey == _settings.MOVE_BACKWARD) {
             _verticalSpeed = WALKING_SPEED;
-        else if (pressedKey == _settings.MOVE_RIGHT)
+            _player.setState(PlayerState.WALKING_FRONT);
+        } else if (pressedKey == _settings.MOVE_RIGHT) {
             _horizontalSpeed = WALKING_SPEED;
-        else if (pressedKey == _settings.MOVE_LEFT)
+            _player.setState(PlayerState.WALKING_RIGHT);
+        } else if (pressedKey == _settings.MOVE_LEFT) {
             _horizontalSpeed = -WALKING_SPEED;
+            _player.setState(PlayerState.WALKING_LEFT);
+        }
     }
 
     public void stopMoving(int pressedKey)
@@ -131,7 +137,28 @@ public final class PlayerController implements KeyListener {
     @Override
     public void keyTyped(KeyEvent e) { }
 
+    private void updateIdleState()
+    {
+        PlayerState state = _player.getState();
+
+        if (state == PlayerState.WALKING_FRONT)
+            _player.setState(PlayerState.IDLE_FRONT);
+        else if (state == PlayerState.WALKING_BACK)
+            _player.setState(PlayerState.IDLE_BACK);
+        else if (state == PlayerState.WALKING_RIGHT)
+            _player.setState(PlayerState.IDLE_RIGHT);
+        else if (state == PlayerState.WALKING_LEFT)
+            _player.setState(PlayerState.IDLE_LEFT);
+    }
+
     public void update() {
+        boolean isMoving = _horizontalSpeed != 0 || _verticalSpeed != 0;
+
+        if (!isMoving) {
+            updateIdleState();
+            return;
+        }
+
         _player.position.x += _horizontalSpeed; 
         _player.position.y +=_verticalSpeed;
     }

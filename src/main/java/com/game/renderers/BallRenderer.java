@@ -35,6 +35,10 @@ public final class BallRenderer implements IRenderer {
 
         g2d.translate((int)ball.getPosition().x + (int)ball.getSize().x / 2, (int)ball.getPosition().y + (int)ball.getSize().y / 2);
 
+        double scaleX = ball.getSize().x / ball.getOriginalSize().x; 
+        double scaleY = ball.getSize().y / ball.getOriginalSize().y;  
+        g2d.scale(scaleX, scaleY); 
+
         g2d.rotate(Math.toRadians(ball.angle));
 
         g2d.drawImage(_image, -(int)ball.getSize().x / 2, -(int)ball.getSize().y / 2, null);
