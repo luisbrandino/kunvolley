@@ -4,9 +4,10 @@ import java.awt.image.BufferedImage;
 
 public class PlayerAnimation extends Animation {
     
-    public PlayerAnimation(long frameDelay)
-    {
-        super(frameDelay);
+    private final static int FRAME_DELAY = 150;
+    
+    public PlayerAnimation() {
+        super(FRAME_DELAY);
 
         Spritesheet firstSpritesheet = new Spritesheet("images/character-sprite.png", 460, 590); 
         Spritesheet secondSpritesheet = new Spritesheet("images/character-sprite.png", 460, 600);
@@ -43,5 +44,4 @@ public class PlayerAnimation extends Animation {
             secondSpritesheet.getTile(0, 3), secondSpritesheet.getTile(1, 3), secondSpritesheet.getTile(2, 3), secondSpritesheet.getTile(3, 3)
         });
     }
-
 }

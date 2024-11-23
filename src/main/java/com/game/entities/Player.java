@@ -18,12 +18,12 @@ public final class Player implements IEntity {
 
     public Player() {
         position = new Vector2(0 ,0);
-        _animation = new PlayerAnimation(150);
+        _animation = new PlayerAnimation();
     }
 
     public Player(Vector2 position) {
         this.position = position;
-        _animation = new PlayerAnimation(150);
+        _animation = new PlayerAnimation();
     }
 
     public String getCurrentAnimation()
