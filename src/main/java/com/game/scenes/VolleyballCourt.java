@@ -17,7 +17,7 @@ public final class VolleyballCourt extends BaseScene {
     protected void paintComponent(Graphics graphics) {
         graphics.setColor(Color.GRAY);
         graphics.fillRect(0, 0, GROUND_WIDTH, GROUND_HEIGHT);
-
+        
         super.paintComponent(graphics);
     }
 }

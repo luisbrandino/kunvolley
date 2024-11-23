@@ -1,12 +1,16 @@
 package com.game.controllers;
 
+import javax.sound.sampled.Clip;
 import javax.swing.JFrame;
 
 import com.game.entities.Ball;
+import com.game.entities.Net;
 import com.game.entities.Player;
 import com.game.enums.GameState;
+import com.game.managers.SoundManager;
 import com.game.managers.TurnManager;
 import com.game.renderers.BallRenderer;
+import com.game.renderers.NetRenderer;
 import com.game.renderers.PlayerRenderer;
 import com.game.renderers.Renderers;
 import com.game.scenes.VolleyballCourt;
@@ -16,6 +20,7 @@ import com.game.utils.Positions;
 import java.awt.BorderLayout;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.Timer;
@@ -40,9 +45,12 @@ public final class GameController {
 
     private TurnManager _turnManager;
 
+    private final SoundManager gameSoundManager;
+
     public GameController() {
         Renderers.addRenderer(Player.class.getName(), new PlayerRenderer());
         Renderers.addRenderer(Ball.class.getName(), new BallRenderer());
+        Renderers.addRenderer(Net.class.getName(), new NetRenderer());
 
         _frame = new JFrame();
     
@@ -59,9 +67,17 @@ public final class GameController {
 
         setupPlayers();
 
+        Net net = new Net(Positions.NET_POSITION);
+        _volleyballCourt.addEntity(net);
+
         _volleyballCourt.addEntity(_ball);
 
         setGameState(GameState.FIRST_PLAYER_SERVE);
+
+        gameSoundManager = new SoundManager(Arrays.asList("sounds/song.wav"));
+
+        gameSoundManager.playSound(0, Clip.LOOP_CONTINUOUSLY);
+        gameSoundManager.setVolume(0.01f);
 
         _frame.setVisible(true);
 

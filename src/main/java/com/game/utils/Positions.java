@@ -8,4 +8,6 @@ public class Positions {
     public final static Vector2 BALL_FIRST_PLAYER_SERVE_POSITION = new Vector2(380, 320);
 
     public final static Vector2 BALL_SECOND_PLAYER_SERVE_POSITION = new Vector2(380, 110);
+
+    public final static Vector2 NET_POSITION = new Vector2(200, 150);
 }

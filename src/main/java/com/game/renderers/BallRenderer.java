@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 
 import javax.swing.ImageIcon;
 
@@ -28,12 +29,16 @@ public final class BallRenderer implements IRenderer {
     public void render(Ball ball, Graphics graphics) {
         Graphics2D g2d = (Graphics2D) graphics;
 
+        AffineTransform originalTransform = g2d.getTransform();
+
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         g2d.translate((int)ball.getPosition().x + (int)ball.getSize().x / 2, (int)ball.getPosition().y + (int)ball.getSize().y / 2);
 
         g2d.rotate(Math.toRadians(ball.angle));
 
-        g2d.drawImage(_image, -(int)ball.getSize().x / 2, -(int)ball.getSize().y / 2, null);// graphics.drawImage(_image, (int)ball.getPosition().x, (int)ball.getPosition().y, (int)ball.getSize().x, (int)ball.getSize().y, null);
+        g2d.drawImage(_image, -(int)ball.getSize().x / 2, -(int)ball.getSize().y / 2, null);
+
+        g2d.setTransform(originalTransform);
     }
 }
