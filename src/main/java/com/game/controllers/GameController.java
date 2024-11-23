@@ -9,9 +9,11 @@ import com.game.renderers.BallRenderer;
 import com.game.renderers.PlayerRenderer;
 import com.game.renderers.Renderers;
 import com.game.scenes.VolleyballCourt;
+import com.game.settings.PlayerControlSettings;
 import com.game.utils.Positions;
 
 import java.awt.BorderLayout;
+import java.awt.event.KeyEvent;
 
 import javax.swing.Timer;
 
@@ -23,12 +25,13 @@ public final class GameController {
     private final JFrame _frame;
     private final Timer _thread;
 
-    private final Player _player;
-    private final Player _ai;
+    private final Player _firstPlayer;
+    private final Player _secondPlayer;
     private final Ball _ball;
 
     private final VolleyballCourt _volleyballCourt;
-    private final PlayerController _playerController;
+    private final PlayerController _firstPlayerController;
+    private final PlayerController _secondPlayerController;
 
     public GameState currentGameState;
 
@@ -45,21 +48,39 @@ public final class GameController {
 
         _volleyballCourt = new VolleyballCourt();
 
-        _player = new Player(Positions.PLAYER_START_POSITION);
-        _ai = new Player(Positions.AI_START_POSITION);
-        _ball = new Ball(Positions.BALL_PLAYER_SERVE_POSITION);
+        _firstPlayer = new Player(Positions.FIRST_PLAYER_SERVE_POSITION);
+        _secondPlayer = new Player(Positions.SECOND_PLAYER_SERVE_POSITION);
+        _ball = new Ball(Positions.BALL_FIRST_PLAYER_SERVE_POSITION);
 
         _frame.add(_volleyballCourt, BorderLayout.SOUTH);
 
-        _volleyballCourt.addEntity(_player);
-        _volleyballCourt.addEntity(_ai);
+        _volleyballCourt.addEntity(_firstPlayer);
+        _volleyballCourt.addEntity(_secondPlayer);
         _volleyballCourt.addEntity(_ball);
 
-        currentGameState = GameState.PLAYER_SERVE;
+        currentGameState = GameState.FIRST_PLAYER_SERVE;
 
-        _playerController = new PlayerController(this, _player);
+        PlayerControlSettings firstPlayerControlSettings = new PlayerControlSettings(
+            KeyEvent.VK_UP,
+            KeyEvent.VK_DOWN,
+            KeyEvent.VK_RIGHT,
+            KeyEvent.VK_LEFT,
+            KeyEvent.VK_ENTER
+        );
 
-        _frame.addKeyListener(_playerController);
+        PlayerControlSettings secondPlayerControlSettings = new PlayerControlSettings(
+            KeyEvent.VK_W,
+            KeyEvent.VK_S,
+            KeyEvent.VK_D,
+            KeyEvent.VK_A,
+            KeyEvent.VK_SPACE
+        );
+
+        _firstPlayerController = new PlayerController(this, _firstPlayer, firstPlayerControlSettings);
+        _secondPlayerController = new PlayerController(this, _secondPlayer, secondPlayerControlSettings);
+
+        _frame.addKeyListener(_firstPlayerController);
+        _frame.addKeyListener(_secondPlayerController);
 
         _frame.setVisible(true);
 
@@ -71,13 +92,13 @@ public final class GameController {
 
     public void startRound()
     {
-        _player.position = Positions.PLAYER_START_POSITION;
-        _ai.position = Positions.AI_START_POSITION;
+        _firstPlayer.position = Positions.FIRST_PLAYER_SERVE_POSITION;
+        _secondPlayer.position = Positions.SECOND_PLAYER_SERVE_POSITION;
         
-        if (currentGameState == GameState.PLAYER_SERVE)
-            _ball.position = Positions.BALL_PLAYER_SERVE_POSITION;
-        else if (currentGameState == GameState.AI_SERVE)
-            _ball.position = Positions.BALL_AI_SERVE_POSITION;
+        if (currentGameState == GameState.FIRST_PLAYER_SERVE)
+            _ball.position = Positions.BALL_FIRST_PLAYER_SERVE_POSITION;
+        else if (currentGameState == GameState.SECOND_PLAYER_SERVE)
+            _ball.position = Positions.BALL_SECOND_PLAYER_SERVE_POSITION;
     }
 
     public void setGameState(GameState gameState)
@@ -90,14 +111,10 @@ public final class GameController {
         return _ball;
     }
 
-    public Player getPlayer()
-    {
-        return _player;
-    }
-
     // called once per frame
     public void update() {
-        _playerController.update();
+        _firstPlayerController.update();
+        _secondPlayerController.update();
         _ball.update();
         _frame.repaint();
     }

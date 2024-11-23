@@ -7,6 +7,7 @@ import java.awt.event.KeyListener;
 import com.game.entities.Ball;
 import com.game.entities.Player;
 import com.game.enums.GameState;
+import com.game.settings.PlayerControlSettings;
 import com.game.utils.RandomGenerator;
 
 public final class PlayerController implements KeyListener {
@@ -15,14 +16,16 @@ public final class PlayerController implements KeyListener {
     private int _horizontalSpeed = 0;
     private int _verticalSpeed = 0;
 
+    private final PlayerControlSettings _controlSettings;
     private final int WALKING_SPEED = 7;
 
     private final Player _player;
 
-    public PlayerController(GameController game, Player player)
+    public PlayerController(GameController game, Player player, PlayerControlSettings controlSettings)
     {
         _game = game;
         _player = player;
+        _controlSettings = controlSettings;
     }
 
     @Override
@@ -43,25 +46,25 @@ public final class PlayerController implements KeyListener {
 
     public void move(int pressedKey)
     {
-        boolean isServing = _game.currentGameState == GameState.PLAYER_SERVE || _game.currentGameState == GameState.AI_SERVE;
+        boolean isServing = _game.currentGameState == GameState.FIRST_PLAYER_SERVE || _game.currentGameState == GameState.SECOND_PLAYER_SERVE;
 
         if (isServing)
             return;
 
-        if (pressedKey == KeyEvent.VK_UP)
+        if (pressedKey == _controlSettings.MOVE_FORWARD)
             _verticalSpeed = -WALKING_SPEED;
-        else if (pressedKey == KeyEvent.VK_DOWN)
+        else if (pressedKey == _controlSettings.MOVE_BACKWARD)
             _verticalSpeed = WALKING_SPEED;
-        else if (pressedKey == KeyEvent.VK_RIGHT)
+        else if (pressedKey == _controlSettings.MOVE_RIGHT)
             _horizontalSpeed = WALKING_SPEED;
-        else if (pressedKey == KeyEvent.VK_LEFT)
+        else if (pressedKey == _controlSettings.MOVE_LEFT)
             _horizontalSpeed = -WALKING_SPEED;
     }
 
     public void stopMoving(int pressedKey)
     {
-        boolean isMovingHorizontally = pressedKey == KeyEvent.VK_RIGHT || pressedKey == KeyEvent.VK_LEFT;
-        boolean isMovingVertically = pressedKey == KeyEvent.VK_UP || pressedKey == KeyEvent.VK_DOWN;
+        boolean isMovingHorizontally = pressedKey == _controlSettings.MOVE_RIGHT || pressedKey == _controlSettings.MOVE_LEFT;
+        boolean isMovingVertically = pressedKey == _controlSettings.MOVE_FORWARD || pressedKey == _controlSettings.MOVE_BACKWARD;
 
         _horizontalSpeed = isMovingHorizontally ? 0 : _horizontalSpeed;
         _verticalSpeed = isMovingVertically ? 0 : _verticalSpeed;
@@ -69,7 +72,7 @@ public final class PlayerController implements KeyListener {
 
     public void serve(int pressedKey)
     {
-        boolean canServe = pressedKey == KeyEvent.VK_SPACE && _game.currentGameState == GameState.PLAYER_SERVE;
+        boolean canServe = pressedKey == _controlSettings.SERVE && _game.currentGameState == GameState.FIRST_PLAYER_SERVE;
 
         if (!canServe)
             return;
@@ -83,16 +86,16 @@ public final class PlayerController implements KeyListener {
     public void pass(int pressedKey)
     {
         boolean canPass = 
-            (pressedKey == KeyEvent.VK_SPACE || pressedKey == KeyEvent.VK_Z) && 
+            (pressedKey == _controlSettings.SERVE || pressedKey == KeyEvent.VK_Z) && 
             _game.currentGameState == GameState.PLAYING &&
-            getPlayerDistanceFromBall(_game.getPlayer(), _game.getBall()) <= 45;
+            getPlayerDistanceFromBall(_player, _game.getBall()) <= 45;
 
         if (!canPass)
             return;
 
-        float direction = _game.getPlayer().position.x >= 400 ? RandomGenerator.nextFloat(-0.5f, 0f) : RandomGenerator.nextFloat(0f, 0.5f);
+        float direction = _player.position.x >= 400 ? RandomGenerator.nextFloat(-0.5f, 0f) : RandomGenerator.nextFloat(0f, 0.5f);
 
-        _game.getBall().serve(direction, pressedKey == KeyEvent.VK_SPACE ? -1.0f : 1);
+        _game.getBall().serve(direction, pressedKey == _controlSettings.SERVE ? -1.0f : 1);
     }
 
     public double getPlayerDistanceFromBall(Player player, Ball ball)

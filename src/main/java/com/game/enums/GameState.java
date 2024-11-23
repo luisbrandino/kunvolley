@@ -1,7 +1,7 @@
 package com.game.enums;
 
 public enum GameState {
-    PLAYER_SERVE,
-    AI_SERVE,
+    FIRST_PLAYER_SERVE,
+    SECOND_PLAYER_SERVE,
     PLAYING
 }
