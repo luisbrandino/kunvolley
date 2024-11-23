@@ -9,7 +9,7 @@ import com.game.renderers.BallRenderer;
 import com.game.renderers.PlayerRenderer;
 import com.game.renderers.Renderers;
 import com.game.scenes.VolleyballCourt;
-import com.game.settings.PlayerControlSettings;
+import com.game.settings.PlayerSettings;
 import com.game.utils.Positions;
 
 import java.awt.BorderLayout;
@@ -25,15 +25,15 @@ public final class GameController {
     private final JFrame _frame;
     private final Timer _thread;
 
-    private final Player _firstPlayer;
-    private final Player _secondPlayer;
-    private final Ball _ball;
+    private Player _firstPlayer;
+    private Player _secondPlayer;
+    private Ball _ball;
 
     private final VolleyballCourt _volleyballCourt;
-    private final PlayerController _firstPlayerController;
-    private final PlayerController _secondPlayerController;
+    private PlayerController _firstPlayerController;
+    private PlayerController _secondPlayerController;
 
-    public GameState currentGameState;
+    private GameState _currentGameState;
 
     public GameController() {
         Renderers.addRenderer(Player.class.getName(), new PlayerRenderer());
@@ -48,39 +48,15 @@ public final class GameController {
 
         _volleyballCourt = new VolleyballCourt();
 
-        _firstPlayer = new Player(Positions.FIRST_PLAYER_SERVE_POSITION);
-        _secondPlayer = new Player(Positions.SECOND_PLAYER_SERVE_POSITION);
         _ball = new Ball(Positions.BALL_FIRST_PLAYER_SERVE_POSITION);
 
         _frame.add(_volleyballCourt, BorderLayout.SOUTH);
 
-        _volleyballCourt.addEntity(_firstPlayer);
-        _volleyballCourt.addEntity(_secondPlayer);
+        setupPlayers();
+
         _volleyballCourt.addEntity(_ball);
 
-        currentGameState = GameState.FIRST_PLAYER_SERVE;
-
-        PlayerControlSettings firstPlayerControlSettings = new PlayerControlSettings(
-            KeyEvent.VK_UP,
-            KeyEvent.VK_DOWN,
-            KeyEvent.VK_RIGHT,
-            KeyEvent.VK_LEFT,
-            KeyEvent.VK_ENTER
-        );
-
-        PlayerControlSettings secondPlayerControlSettings = new PlayerControlSettings(
-            KeyEvent.VK_W,
-            KeyEvent.VK_S,
-            KeyEvent.VK_D,
-            KeyEvent.VK_A,
-            KeyEvent.VK_SPACE
-        );
-
-        _firstPlayerController = new PlayerController(this, _firstPlayer, firstPlayerControlSettings);
-        _secondPlayerController = new PlayerController(this, _secondPlayer, secondPlayerControlSettings);
-
-        _frame.addKeyListener(_firstPlayerController);
-        _frame.addKeyListener(_secondPlayerController);
+        setGameState(GameState.FIRST_PLAYER_SERVE);
 
         _frame.setVisible(true);
 
@@ -90,20 +66,58 @@ public final class GameController {
         startRound();
     }
 
-    public void startRound()
+    private void setupPlayers()
+    {
+        PlayerSettings firstPlayerControlSettings = new PlayerSettings(
+            KeyEvent.VK_UP,
+            KeyEvent.VK_DOWN,
+            KeyEvent.VK_RIGHT,
+            KeyEvent.VK_LEFT,
+            KeyEvent.VK_ENTER,
+            -1
+        );
+
+        PlayerSettings secondPlayerControlSettings = new PlayerSettings(
+            KeyEvent.VK_W,
+            KeyEvent.VK_S,
+            KeyEvent.VK_D,
+            KeyEvent.VK_A,
+            KeyEvent.VK_SPACE,
+            1
+        );
+
+        _firstPlayer = new Player(Positions.FIRST_PLAYER_SERVE_POSITION);
+        _secondPlayer = new Player(Positions.SECOND_PLAYER_SERVE_POSITION);
+
+        _firstPlayerController = new PlayerController(this, _firstPlayer, firstPlayerControlSettings);
+        _secondPlayerController = new PlayerController(this, _secondPlayer, secondPlayerControlSettings);
+
+        _frame.addKeyListener(_firstPlayerController);
+        _frame.addKeyListener(_secondPlayerController);
+
+        _volleyballCourt.addEntity(_firstPlayer);
+        _volleyballCourt.addEntity(_secondPlayer);
+    }
+
+    private void startRound()
     {
         _firstPlayer.position = Positions.FIRST_PLAYER_SERVE_POSITION;
         _secondPlayer.position = Positions.SECOND_PLAYER_SERVE_POSITION;
         
-        if (currentGameState == GameState.FIRST_PLAYER_SERVE)
+        if (_currentGameState == GameState.FIRST_PLAYER_SERVE)
             _ball.position = Positions.BALL_FIRST_PLAYER_SERVE_POSITION;
-        else if (currentGameState == GameState.SECOND_PLAYER_SERVE)
+        else if (_currentGameState == GameState.SECOND_PLAYER_SERVE)
             _ball.position = Positions.BALL_SECOND_PLAYER_SERVE_POSITION;
+    }
+
+    public GameState getGameState()
+    {
+        return _currentGameState;
     }
 
     public void setGameState(GameState gameState)
     {
-        currentGameState = gameState;
+        _currentGameState = gameState;
     }
 
     public Ball getBall()
