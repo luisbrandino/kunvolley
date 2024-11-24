@@ -16,6 +16,7 @@ import com.game.renderers.PlayerRenderer;
 import com.game.renderers.Renderers;
 import com.game.scenes.VolleyballCourt;
 import com.game.settings.PlayerSettings;
+import com.game.utils.Field;
 import com.game.utils.Positions;
 import com.game.utils.Vector2;
 
@@ -111,14 +112,25 @@ public final class GameController {
             1
         );
 
+        Field firstPlayerField = new Field(
+            new Vector2(150, 350),
+            new Vector2(600, 245),
+            true
+        );
+
+        Field secondPlayerField = new Field(
+            new Vector2(150, 30),
+            new Vector2(600, 180)
+        );
+
         _firstPlayer = new Player(new Vector2(Positions.FIRST_PLAYER_SERVE_POSITION));
         _secondPlayer = new Player(new Vector2(Positions.SECOND_PLAYER_SERVE_POSITION));
 
         _firstPlayer.setState(PlayerState.IDLE_BACK);
         _secondPlayer.setState(PlayerState.IDLE_FRONT);
 
-        _firstPlayerController = new PlayerController(this, _firstPlayer, firstPlayerSettings);
-        _secondPlayerController = new PlayerController(this, _secondPlayer, secondPlayerSettings);
+        _firstPlayerController = new PlayerController(this, _firstPlayer, firstPlayerSettings, firstPlayerField);
+        _secondPlayerController = new PlayerController(this, _secondPlayer, secondPlayerSettings, secondPlayerField);
 
         _frame.addKeyListener(_firstPlayerController);
         _frame.addKeyListener(_secondPlayerController);
@@ -171,6 +183,9 @@ public final class GameController {
 
         if (!_ball.isMoving() && _currentGameState == GameState.PLAYING) {
             setGameState(GameState.ROUND_IS_OVER);
+
+            _firstPlayerController.updateIdleState();
+            _secondPlayerController.updateIdleState();
            
             try {
                 Thread.sleep(2000);

@@ -11,6 +11,7 @@ import com.game.entities.Player;
 import com.game.enums.GameState;
 import com.game.enums.PlayerState;
 import com.game.settings.PlayerSettings;
+import com.game.utils.Field;
 import com.game.utils.RandomGenerator;
 
 public final class PlayerController implements KeyListener {
@@ -23,6 +24,7 @@ public final class PlayerController implements KeyListener {
     private final int WALKING_SPEED = 7;
 
     private final Player _player;
+    private final Field _playerField;
     
     private static final Map<PlayerState, PlayerState> _movementToIdleStateMap = new HashMap<>();
     
@@ -47,11 +49,12 @@ public final class PlayerController implements KeyListener {
         }
     }
 
-    public PlayerController(GameController game, Player player, PlayerSettings settings)
+    public PlayerController(GameController game, Player player, PlayerSettings settings, Field playerField)
     {
         _game = game;
         _player = player;
         _settings = settings;
+        _playerField = playerField;
 
         _movementMap = Map.of(
             _settings.MOVE_FORWARD, new Movement(-WALKING_SPEED, 0, PlayerState.WALKING_BACK),
@@ -96,6 +99,7 @@ public final class PlayerController implements KeyListener {
     private void updateMovement(Movement movement) {
         _verticalSpeed = movement.verticalSpeed;
         _horizontalSpeed = movement.horizontalSpeed;
+
         _player.setState(movement.playerState);
     }
 
@@ -171,7 +175,7 @@ public final class PlayerController implements KeyListener {
     @Override
     public void keyTyped(KeyEvent e) { }
 
-    private void updateIdleState()
+    public void updateIdleState()
     {
         PlayerState state = _player.getState();
         PlayerState idleState = _movementToIdleStateMap.get(state);
@@ -190,5 +194,12 @@ public final class PlayerController implements KeyListener {
 
         _player.position.x += _horizontalSpeed; 
         _player.position.y +=_verticalSpeed;
+
+        if (!_playerField.isWithinBounds(_player.position)) {
+            _player.position.x -= _horizontalSpeed;
+            _player.position.y -= _verticalSpeed;
+
+            return;
+        }
     }
 }
