@@ -7,6 +7,12 @@ public final class Vector2 {
     public Vector2() {
     }
 
+    public Vector2(Vector2 vector)
+    {
+        x = vector.x;
+        y = vector.y;
+    }
+
     public Vector2(double x, double y) {
         this.x = x;
         this.y = y;

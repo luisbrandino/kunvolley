@@ -46,10 +46,9 @@ public class Ball implements IEntity {
 
     public void update()
     {
-        boolean isMoving = _horizontalSpeed != 0 && _verticalSpeed != 0;
-
-        if (!isMoving)
+        if (!isMoving()){
             return;
+        }
 
         position.x += _horizontalSpeed;
 
@@ -73,6 +72,11 @@ public class Ball implements IEntity {
     public SoundManager getBallSoundManager()
     {
         return _ballSoundManager;
+    }
+
+    public boolean isMoving()
+    {
+        return _horizontalSpeed != 0 && _verticalSpeed != 0;
     }
 
     @Override

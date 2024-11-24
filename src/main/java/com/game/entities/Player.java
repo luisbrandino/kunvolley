@@ -1,8 +1,8 @@
 package com.game.entities;
 
+import com.game.animations.PlayerAnimation;
 import com.game.contracts.IEntity;
 import com.game.enums.PlayerState;
-import com.game.graphics.PlayerAnimation;
 import com.game.utils.Vector2;
 
 public final class Player implements IEntity {

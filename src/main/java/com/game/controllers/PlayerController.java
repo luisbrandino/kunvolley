@@ -3,6 +3,8 @@ package com.game.controllers;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.game.entities.Ball;
 import com.game.entities.Player;
@@ -21,12 +23,42 @@ public final class PlayerController implements KeyListener {
     private final int WALKING_SPEED = 7;
 
     private final Player _player;
+    
+    private static final Map<PlayerState, PlayerState> _movementToIdleStateMap = new HashMap<>();
+    
+    static {
+        _movementToIdleStateMap.put(PlayerState.WALKING_FRONT, PlayerState.IDLE_FRONT);
+        _movementToIdleStateMap.put(PlayerState.WALKING_BACK, PlayerState.IDLE_BACK);
+        _movementToIdleStateMap.put(PlayerState.WALKING_RIGHT, PlayerState.IDLE_RIGHT);
+        _movementToIdleStateMap.put(PlayerState.WALKING_LEFT, PlayerState.IDLE_LEFT);
+    }
+    
+    private final Map<Integer, Movement> _movementMap;
+
+    private static class Movement {
+        final int verticalSpeed;
+        final int horizontalSpeed;
+        final PlayerState playerState;
+    
+        Movement(int verticalSpeed, int horizontalSpeed, PlayerState playerState) {
+            this.verticalSpeed = verticalSpeed;
+            this.horizontalSpeed = horizontalSpeed;
+            this.playerState = playerState;
+        }
+    }
 
     public PlayerController(GameController game, Player player, PlayerSettings settings)
     {
         _game = game;
         _player = player;
         _settings = settings;
+
+        _movementMap = Map.of(
+            _settings.MOVE_FORWARD, new Movement(-WALKING_SPEED, 0, PlayerState.WALKING_BACK),
+            _settings.MOVE_BACKWARD, new Movement(WALKING_SPEED, 0, PlayerState.WALKING_FRONT),
+            _settings.MOVE_RIGHT, new Movement(0, WALKING_SPEED, PlayerState.WALKING_RIGHT),
+            _settings.MOVE_LEFT, new Movement(0, -WALKING_SPEED, PlayerState.WALKING_LEFT)
+        );
     }
 
     @Override
@@ -47,26 +79,24 @@ public final class PlayerController implements KeyListener {
 
     public void move(int pressedKey)
     {
-        GameState currentGameState = _game.getGameState();
-
-        boolean isServing = currentGameState == GameState.FIRST_PLAYER_SERVE || currentGameState == GameState.SECOND_PLAYER_SERVE;
-
-        if (isServing)
+        if (isServing())
             return;
 
-        if (pressedKey == _settings.MOVE_FORWARD) {
-            _verticalSpeed = -WALKING_SPEED;
-            _player.setState(PlayerState.WALKING_BACK);
-        } else if (pressedKey == _settings.MOVE_BACKWARD) {
-            _verticalSpeed = WALKING_SPEED;
-            _player.setState(PlayerState.WALKING_FRONT);
-        } else if (pressedKey == _settings.MOVE_RIGHT) {
-            _horizontalSpeed = WALKING_SPEED;
-            _player.setState(PlayerState.WALKING_RIGHT);
-        } else if (pressedKey == _settings.MOVE_LEFT) {
-            _horizontalSpeed = -WALKING_SPEED;
-            _player.setState(PlayerState.WALKING_LEFT);
-        }
+        Movement movement = _movementMap.get(pressedKey);
+
+        if (movement != null)
+            updateMovement(movement);
+    }
+
+    private boolean isServing() {
+        GameState currentGameState = _game.getGameState();
+        return currentGameState == GameState.FIRST_PLAYER_SERVE || currentGameState == GameState.SECOND_PLAYER_SERVE;
+    }
+
+    private void updateMovement(Movement movement) {
+        _verticalSpeed = movement.verticalSpeed;
+        _horizontalSpeed = movement.horizontalSpeed;
+        _player.setState(movement.playerState);
     }
 
     public void stopMoving(int pressedKey)
@@ -80,14 +110,7 @@ public final class PlayerController implements KeyListener {
 
     public void serve(int pressedKey)
     {
-        GameState currentGameState = _game.getGameState();
-
-        boolean canServe = 
-            pressedKey == _settings.SERVE && 
-            (currentGameState == GameState.FIRST_PLAYER_SERVE || currentGameState == GameState.SECOND_PLAYER_SERVE) &&
-            isPlayerTurn();
-
-        if (!canServe)
+        if (!canPerformServe(pressedKey))
             return;
 
         float direction = RandomGenerator.nextFloat(-0.5f, 0.5f);
@@ -98,15 +121,18 @@ public final class PlayerController implements KeyListener {
         _game.setGameState(GameState.PLAYING);
     }
 
+    private boolean canPerformServe(int pressedKey)
+    {
+        GameState currentGameState = _game.getGameState();
+
+        return pressedKey == _settings.SERVE && 
+            (currentGameState == GameState.FIRST_PLAYER_SERVE || currentGameState == GameState.SECOND_PLAYER_SERVE) &&
+            isPlayerTurn();
+    }
+
     public void pass(int pressedKey)
     {
-        boolean canPass = 
-            (pressedKey == _settings.SERVE || pressedKey == KeyEvent.VK_Z) && 
-            _game.getGameState() == GameState.PLAYING &&
-            isPlayerTurn() &&
-            getPlayerDistanceFromBall(_player, _game.getBall()) <= 45;
-
-        if (!canPass)
+        if (!canPerformPass(pressedKey))
             return;
 
         float direction = _player.position.x >= 400 ? RandomGenerator.nextFloat(-0.5f, 0f) : RandomGenerator.nextFloat(0f, 0.5f);
@@ -114,6 +140,14 @@ public final class PlayerController implements KeyListener {
         _game.getBall().serve(direction, _settings.SERVE_DIRECTION);
         _game.getBall().getBallSoundManager().playRandom();
         _game.getTurnManager().nextTurn();
+    }
+
+    private boolean canPerformPass(int pressedKey)
+    {
+        return (pressedKey == _settings.SERVE || pressedKey == KeyEvent.VK_Z) && 
+            _game.getGameState() == GameState.PLAYING &&
+            isPlayerTurn() &&
+            getPlayerDistanceFromBall(_player, _game.getBall()) <= 45;
     }
 
     public double getPlayerDistanceFromBall(Player player, Ball ball)
@@ -140,15 +174,10 @@ public final class PlayerController implements KeyListener {
     private void updateIdleState()
     {
         PlayerState state = _player.getState();
+        PlayerState idleState = _movementToIdleStateMap.get(state);
 
-        if (state == PlayerState.WALKING_FRONT)
-            _player.setState(PlayerState.IDLE_FRONT);
-        else if (state == PlayerState.WALKING_BACK)
-            _player.setState(PlayerState.IDLE_BACK);
-        else if (state == PlayerState.WALKING_RIGHT)
-            _player.setState(PlayerState.IDLE_RIGHT);
-        else if (state == PlayerState.WALKING_LEFT)
-            _player.setState(PlayerState.IDLE_LEFT);
+        if (idleState != null)
+            _player.setState(idleState);
     }
 
     public void update() {

@@ -17,6 +17,7 @@ import com.game.renderers.Renderers;
 import com.game.scenes.VolleyballCourt;
 import com.game.settings.PlayerSettings;
 import com.game.utils.Positions;
+import com.game.utils.Vector2;
 
 import java.awt.BorderLayout;
 import java.awt.event.KeyEvent;
@@ -62,13 +63,13 @@ public final class GameController {
 
         _volleyballCourt = new VolleyballCourt();
 
-        _ball = new Ball(Positions.BALL_FIRST_PLAYER_SERVE_POSITION);
+        _ball = new Ball(new Vector2(Positions.BALL_FIRST_PLAYER_SERVE_POSITION));
 
         _frame.add(_volleyballCourt, BorderLayout.SOUTH);
 
         setupPlayers();
 
-        Net net = new Net(Positions.NET_POSITION);
+        Net net = new Net(new Vector2(Positions.NET_POSITION));
         
         _volleyballCourt.addEntity(_secondPlayer);
         _volleyballCourt.addEntity(net);
@@ -110,8 +111,8 @@ public final class GameController {
             1
         );
 
-        _firstPlayer = new Player(Positions.FIRST_PLAYER_SERVE_POSITION);
-        _secondPlayer = new Player(Positions.SECOND_PLAYER_SERVE_POSITION);
+        _firstPlayer = new Player(new Vector2(Positions.FIRST_PLAYER_SERVE_POSITION));
+        _secondPlayer = new Player(new Vector2(Positions.SECOND_PLAYER_SERVE_POSITION));
 
         _firstPlayer.setState(PlayerState.IDLE_BACK);
         _secondPlayer.setState(PlayerState.IDLE_FRONT);
@@ -132,13 +133,13 @@ public final class GameController {
 
     private void startRound()
     {
-        _firstPlayer.position = Positions.FIRST_PLAYER_SERVE_POSITION;
-        _secondPlayer.position = Positions.SECOND_PLAYER_SERVE_POSITION;
+        _firstPlayer.position = new Vector2(Positions.FIRST_PLAYER_SERVE_POSITION);
+        _secondPlayer.position = new Vector2(Positions.SECOND_PLAYER_SERVE_POSITION);
         
         if (_currentGameState == GameState.FIRST_PLAYER_SERVE)
-            _ball.position = Positions.BALL_FIRST_PLAYER_SERVE_POSITION;
+            _ball.position = new Vector2(Positions.BALL_FIRST_PLAYER_SERVE_POSITION);
         else if (_currentGameState == GameState.SECOND_PLAYER_SERVE)
-            _ball.position = Positions.BALL_SECOND_PLAYER_SERVE_POSITION;
+            _ball.position = new Vector2(Positions.BALL_SECOND_PLAYER_SERVE_POSITION);
     }
 
     public GameState getGameState()
@@ -167,5 +168,20 @@ public final class GameController {
         _secondPlayerController.update();
         _ball.update();
         _frame.repaint();
+
+        if (!_ball.isMoving() && _currentGameState == GameState.PLAYING) {
+            setGameState(GameState.ROUND_IS_OVER);
+           
+            try {
+                Thread.sleep(2000);
+            } catch (Exception e) { }
+
+            setGameState(GameState.FIRST_PLAYER_SERVE);
+            _turnManager.setNextTurnTo(0);
+            _firstPlayer.setState(PlayerState.IDLE_BACK);
+            _secondPlayer.setState(PlayerState.IDLE_FRONT);
+
+            startRound();
+        }
     }
 }

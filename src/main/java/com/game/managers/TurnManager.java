@@ -14,6 +14,13 @@ public final class TurnManager {
         _currentPlayerIndex = 0;
     }
 
+    public void setNextTurnTo(int playerIndex) {
+        if (playerIndex < 0 || playerIndex >= _players.size())
+            return;
+
+        _currentPlayerIndex = playerIndex;
+    }
+
     public Player getCurrentPlayer()
     {
         return _players.get(_currentPlayerIndex);
