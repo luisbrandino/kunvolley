@@ -97,14 +97,13 @@ public final class PlayerController implements KeyListener {
     }
 
     private void updateMovement(Movement movement) {
-        _verticalSpeed = movement.verticalSpeed;
-        _horizontalSpeed = movement.horizontalSpeed;
+        _verticalSpeed = movement.verticalSpeed == 0 ? _verticalSpeed : movement.verticalSpeed;
+        _horizontalSpeed = movement.horizontalSpeed == 0 ? _horizontalSpeed : movement.horizontalSpeed;
 
         _player.setState(movement.playerState);
     }
 
-    public void stopMoving(int pressedKey)
-    {
+    public void stopMoving(int pressedKey) {
         boolean isMovingHorizontally = pressedKey == _settings.MOVE_RIGHT || pressedKey == _settings.MOVE_LEFT;
         boolean isMovingVertically = pressedKey == _settings.MOVE_FORWARD || pressedKey == _settings.MOVE_BACKWARD;
 
@@ -184,6 +183,10 @@ public final class PlayerController implements KeyListener {
             _player.setState(idleState);
     }
 
+    public Field getPlayerField() {
+        return _playerField;
+    }
+
     public void update() {
         boolean isMoving = _horizontalSpeed != 0 || _verticalSpeed != 0;
 
@@ -191,6 +194,9 @@ public final class PlayerController implements KeyListener {
             updateIdleState();
             return;
         }
+
+        if (isServing())
+            return;
 
         _player.position.x += _horizontalSpeed; 
         _player.position.y +=_verticalSpeed;

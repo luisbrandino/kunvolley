@@ -16,6 +16,7 @@ import com.game.renderers.PlayerRenderer;
 import com.game.renderers.Renderers;
 import com.game.scenes.VolleyballCourt;
 import com.game.settings.PlayerSettings;
+import com.game.utils.Cooldown;
 import com.game.utils.Field;
 import com.game.utils.Positions;
 import com.game.utils.Vector2;
@@ -40,6 +41,8 @@ public final class GameController {
     private Player _secondPlayer;
     private Ball _ball;
 
+    private final Cooldown _intermissionCooldown;
+
     private final VolleyballCourt _volleyballCourt;
     private PlayerController _firstPlayerController;
     private PlayerController _secondPlayerController;
@@ -51,6 +54,8 @@ public final class GameController {
     private final SoundManager gameSoundManager;
 
     public GameController() {
+        _intermissionCooldown = new Cooldown(3000);
+
         Renderers.addRenderer(Player.class.getName(), new PlayerRenderer());
         Renderers.addRenderer(Ball.class.getName(), new BallRenderer());
         Renderers.addRenderer(Net.class.getName(), new NetRenderer());
@@ -113,14 +118,14 @@ public final class GameController {
         );
 
         Field firstPlayerField = new Field(
-            new Vector2(150, 350),
-            new Vector2(600, 245),
+            new Vector2(175, 370),
+            new Vector2(580, 245),
             true
         );
 
         Field secondPlayerField = new Field(
-            new Vector2(150, 30),
-            new Vector2(600, 180)
+            new Vector2(175, 5),
+            new Vector2(580, 160)
         );
 
         _firstPlayer = new Player(new Vector2(Positions.FIRST_PLAYER_SERVE_POSITION));
@@ -174,8 +179,30 @@ public final class GameController {
         return _turnManager;
     }
 
-    // called once per frame
+    private void handleWhenRoundIsOver() {
+        if (!_intermissionCooldown.ready())
+                return;
+            
+        boolean hasBallFallenOnFirstPlayerField = _firstPlayerController.getPlayerField().isWithinBounds(_ball.position);
+
+        GameState serveStartsWith;
+        int playerServingIndex;
+
+        serveStartsWith = hasBallFallenOnFirstPlayerField ? GameState.SECOND_PLAYER_SERVE : GameState.FIRST_PLAYER_SERVE;
+        playerServingIndex = hasBallFallenOnFirstPlayerField ? 1 : 0;
+
+        setGameState(serveStartsWith);
+        _turnManager.setNextTurnTo(playerServingIndex);
+        _firstPlayer.setState(PlayerState.IDLE_BACK);
+        _secondPlayer.setState(PlayerState.IDLE_FRONT);
+    
+        startRound();
+    }
+
     public void update() {
+        if (_currentGameState == GameState.ROUND_IS_OVER)
+            handleWhenRoundIsOver();
+
         _firstPlayerController.update();
         _secondPlayerController.update();
         _ball.update();
@@ -183,20 +210,11 @@ public final class GameController {
 
         if (!_ball.isMoving() && _currentGameState == GameState.PLAYING) {
             setGameState(GameState.ROUND_IS_OVER);
-
+            
             _firstPlayerController.updateIdleState();
             _secondPlayerController.updateIdleState();
-           
-            try {
-                Thread.sleep(2000);
-            } catch (Exception e) { }
-
-            setGameState(GameState.FIRST_PLAYER_SERVE);
-            _turnManager.setNextTurnTo(0);
-            _firstPlayer.setState(PlayerState.IDLE_BACK);
-            _secondPlayer.setState(PlayerState.IDLE_FRONT);
-
-            startRound();
+            
+            _intermissionCooldown.start();
         }
     }
 }

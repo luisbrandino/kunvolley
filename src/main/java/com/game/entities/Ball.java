@@ -23,7 +23,10 @@ public class Ball implements IEntity {
 
     private final SoundManager _ballSoundManager = new SoundManager(Arrays.asList(
         "sounds/ballhit1.wav",
-        "sounds/ballhit2.wav"
+        "sounds/ballhit2.wav",
+        "sounds/ballhit3.wav",
+        "sounds/ballhit4.wav",
+        "sounds/ballhit5.wav"
     ));
 
     public double angle;
@@ -46,9 +49,8 @@ public class Ball implements IEntity {
 
     public void update()
     {
-        if (!isMoving()){
+        if (!isMoving())
             return;
-        }
 
         position.x += _horizontalSpeed;
 
