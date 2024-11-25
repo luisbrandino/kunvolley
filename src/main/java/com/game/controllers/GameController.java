@@ -4,6 +4,7 @@ import javax.sound.sampled.Clip;
 import javax.swing.JFrame;
 
 import com.game.entities.Ball;
+import com.game.entities.ChargeMeter;
 import com.game.entities.Net;
 import com.game.entities.Player;
 import com.game.enums.GameState;
@@ -11,6 +12,7 @@ import com.game.enums.PlayerState;
 import com.game.managers.SoundManager;
 import com.game.managers.TurnManager;
 import com.game.renderers.BallRenderer;
+import com.game.renderers.ChargeMeterRenderer;
 import com.game.renderers.NetRenderer;
 import com.game.renderers.PlayerRenderer;
 import com.game.renderers.Renderers;
@@ -46,6 +48,8 @@ public final class GameController {
     private final VolleyballCourt _volleyballCourt;
     private PlayerController _firstPlayerController;
     private PlayerController _secondPlayerController;
+    private ChargeMeter _firstPlayerChargeMeter;
+    private ChargeMeter _secondPlayerChargeMeter;
 
     private GameState _currentGameState;
 
@@ -59,6 +63,7 @@ public final class GameController {
         Renderers.addRenderer(Player.class.getName(), new PlayerRenderer());
         Renderers.addRenderer(Ball.class.getName(), new BallRenderer());
         Renderers.addRenderer(Net.class.getName(), new NetRenderer());
+        Renderers.addRenderer(ChargeMeter.class.getName(), new ChargeMeterRenderer());
 
         _frame = new JFrame();
     
@@ -78,9 +83,11 @@ public final class GameController {
         Net net = new Net(new Vector2(Positions.NET_POSITION));
         
         _volleyballCourt.addEntity(_secondPlayer);
+        _volleyballCourt.addEntity(_secondPlayerChargeMeter);
         _volleyballCourt.addEntity(net);
         _volleyballCourt.addEntity(_ball);
         _volleyballCourt.addEntity(_firstPlayer);
+        _volleyballCourt.addEntity(_firstPlayerChargeMeter);
 
         setGameState(GameState.FIRST_PLAYER_SERVE);
 
@@ -137,6 +144,12 @@ public final class GameController {
         _firstPlayerController = new PlayerController(this, _firstPlayer, firstPlayerSettings, firstPlayerField);
         _secondPlayerController = new PlayerController(this, _secondPlayer, secondPlayerSettings, secondPlayerField);
 
+        _firstPlayerChargeMeter = new ChargeMeter(_firstPlayer);
+        _secondPlayerChargeMeter = new ChargeMeter(_secondPlayer);
+
+        _firstPlayer.setChargeMeter(_firstPlayerChargeMeter);
+        _secondPlayer.setChargeMeter(_secondPlayerChargeMeter);
+
         _frame.addKeyListener(_firstPlayerController);
         _frame.addKeyListener(_secondPlayerController);
 
@@ -179,17 +192,31 @@ public final class GameController {
         return _turnManager;
     }
 
+    private Player findWinner() {
+        boolean hasBallFallenOnFirstPlayerField = _firstPlayerController.getPlayerField().isWithinBounds(_ball.position);
+
+        if (hasBallFallenOnFirstPlayerField)
+            return _secondPlayer;
+
+        boolean hasBallFallenOnSecondPlayerField = _secondPlayerController.getPlayerField().isWithinBounds(_ball.position);
+
+        if (hasBallFallenOnSecondPlayerField)
+            return _firstPlayer;
+
+        return _turnManager.getCurrentPlayer();
+    }
+
     private void handleWhenRoundIsOver() {
         if (!_intermissionCooldown.ready())
                 return;
             
-        boolean hasBallFallenOnFirstPlayerField = _firstPlayerController.getPlayerField().isWithinBounds(_ball.position);
+        Player winner = findWinner();
 
         GameState serveStartsWith;
         int playerServingIndex;
 
-        serveStartsWith = hasBallFallenOnFirstPlayerField ? GameState.SECOND_PLAYER_SERVE : GameState.FIRST_PLAYER_SERVE;
-        playerServingIndex = hasBallFallenOnFirstPlayerField ? 1 : 0;
+        serveStartsWith = winner == _secondPlayer ? GameState.SECOND_PLAYER_SERVE : GameState.FIRST_PLAYER_SERVE;
+        playerServingIndex = winner == _secondPlayer ? 1 : 0;
 
         setGameState(serveStartsWith);
         _turnManager.setNextTurnTo(playerServingIndex);
@@ -205,9 +232,11 @@ public final class GameController {
 
         _firstPlayerController.update();
         _secondPlayerController.update();
+        _firstPlayerChargeMeter.update();
+        _secondPlayerChargeMeter.update();
         _ball.update();
         _frame.repaint();
-
+ 
         if (!_ball.isMoving() && _currentGameState == GameState.PLAYING) {
             setGameState(GameState.ROUND_IS_OVER);
             

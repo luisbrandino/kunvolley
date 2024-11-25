@@ -47,11 +47,19 @@ public class Ball implements IEntity {
         _movingUp = _verticalSpeed > 0;
     }
 
+    public void serve(float force, float horizontalDirection, float verticalDirection)
+    {
+        _horizontalSpeed = (BALL_SPEED * (1 + force)) * horizontalDirection;
+        _verticalSpeed = BALL_SPEED * verticalDirection;
+
+        _movingUp = _verticalSpeed > 0;
+    }
+
     public void update()
     {
         if (!isMoving())
             return;
-
+        
         position.x += _horizontalSpeed;
 
         _movingUp = _verticalSpeed > 0;
@@ -78,7 +86,7 @@ public class Ball implements IEntity {
 
     public boolean isMoving()
     {
-        return _horizontalSpeed != 0 && _verticalSpeed != 0;
+        return _verticalSpeed != 0;
     }
 
     @Override

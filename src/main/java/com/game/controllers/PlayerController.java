@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.game.entities.Ball;
+import com.game.entities.ChargeMeter;
 import com.game.entities.Player;
 import com.game.enums.GameState;
 import com.game.enums.PlayerState;
@@ -70,14 +71,18 @@ public final class PlayerController implements KeyListener {
 
         move(pressedKey);
 
-        pass(pressedKey);
+        startPass(pressedKey);
         
-        serve(pressedKey);
+        startServe(pressedKey);
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
-        stopMoving(e.getKeyCode());        
+        stopMoving(e.getKeyCode());
+        
+        pass(e.getKeyCode());
+
+        serve(e.getKeyCode());
     }
 
     public void move(int pressedKey)
@@ -113,15 +118,68 @@ public final class PlayerController implements KeyListener {
 
     public void serve(int pressedKey)
     {
+        if (pressedKey == _settings.SERVE && _player.getChargeMeter().isCharging())
+            _player.getChargeMeter().stopCharging();
+            
         if (!canPerformServe(pressedKey))
             return;
 
-        float direction = RandomGenerator.nextFloat(-0.5f, 0.5f);
+        ChargeMeter chargeMeter = _player.getChargeMeter();
 
-        _game.getBall().serve(direction, _settings.SERVE_DIRECTION);
+        float direction = RandomGenerator.nextFloat(-0.5f, 0.5f);
+        float chargingDuration = _player.getChargeMeter().getLastChargeDuration();
+        float force = Math.min(chargingDuration, chargeMeter.MAX_CHARGE_DURATION) / chargeMeter.MAX_CHARGE_DURATION;
+
+        _game.getBall().serve(force, direction, _settings.SERVE_DIRECTION);
         _game.getBall().getBallSoundManager().playRandom();
         _game.getTurnManager().nextTurn();
         _game.setGameState(GameState.PLAYING);
+    }
+
+    public void startServe(int pressedKey)
+    {
+        if (!canStartServe(pressedKey))
+            return;
+
+        _player.getChargeMeter().startCharging();
+    }
+
+    public void startPass(int pressedKey)
+    {
+        if (!canStartPass(pressedKey))
+            return;
+
+        _player.getChargeMeter().startCharging();
+    }
+
+    public void pass(int pressedKey)
+    {
+        if ((pressedKey == _settings.SERVE || pressedKey == KeyEvent.VK_Z) && _player.getChargeMeter().isCharging())
+            _player.getChargeMeter().stopCharging();
+            
+        if (!canPerformPass(pressedKey))
+            return;
+
+        ChargeMeter chargeMeter = _player.getChargeMeter();
+
+        float direction = _player.position.x >= 400 ? RandomGenerator.nextFloat(-0.5f, 0f) : RandomGenerator.nextFloat(0f, 0.5f);
+        float chargingDuration = _player.getChargeMeter().getLastChargeDuration();
+        float force = Math.min(chargingDuration, chargeMeter.MAX_CHARGE_DURATION) / chargeMeter.MAX_CHARGE_DURATION;
+
+        _game.getBall().serve(force, direction, _settings.SERVE_DIRECTION);
+        _game.getBall().getBallSoundManager().playRandom();
+        _game.getTurnManager().nextTurn();
+    }
+
+    private boolean canStartPass(int pressedKey) {
+        return (pressedKey == _settings.SERVE || pressedKey == KeyEvent.VK_Z) &&
+            (_game.getGameState() == GameState.PLAYING) &&
+            !_player.getChargeMeter().isCharging();
+    }
+
+    private boolean canStartServe(int pressedKey) {
+        return canPerformServe(pressedKey) &&
+            !_player.getChargeMeter().isCharging();
     }
 
     private boolean canPerformServe(int pressedKey)
@@ -131,18 +189,6 @@ public final class PlayerController implements KeyListener {
         return pressedKey == _settings.SERVE && 
             (currentGameState == GameState.FIRST_PLAYER_SERVE || currentGameState == GameState.SECOND_PLAYER_SERVE) &&
             isPlayerTurn();
-    }
-
-    public void pass(int pressedKey)
-    {
-        if (!canPerformPass(pressedKey))
-            return;
-
-        float direction = _player.position.x >= 400 ? RandomGenerator.nextFloat(-0.5f, 0f) : RandomGenerator.nextFloat(0f, 0.5f);
-
-        _game.getBall().serve(direction, _settings.SERVE_DIRECTION);
-        _game.getBall().getBallSoundManager().playRandom();
-        _game.getTurnManager().nextTurn();
     }
 
     private boolean canPerformPass(int pressedKey)

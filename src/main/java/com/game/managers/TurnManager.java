@@ -27,6 +27,17 @@ public final class TurnManager {
     }
 
     public void nextTurn() {
-        _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.size();
+        _currentPlayerIndex = getNextTurn();
+    }
+
+    public int getNextTurn() {
+        return (_currentPlayerIndex + 1) % _players.size();
+    }
+
+    public Player getPlayerAt(int index) {
+        if (index < 0 || index > _players.size())
+            return null;
+
+        return _players.get(index);
     }
 }
