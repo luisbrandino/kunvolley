@@ -16,6 +16,7 @@ import com.game.renderers.ChargeMeterRenderer;
 import com.game.renderers.NetRenderer;
 import com.game.renderers.PlayerRenderer;
 import com.game.renderers.Renderers;
+import com.game.scenes.Sky;
 import com.game.scenes.VolleyballCourt;
 import com.game.settings.PlayerSettings;
 import com.game.utils.Cooldown;
@@ -46,6 +47,7 @@ public final class GameController {
     private final Cooldown _intermissionCooldown;
 
     private final VolleyballCourt _volleyballCourt;
+    private final Sky _sky;
     private PlayerController _firstPlayerController;
     private PlayerController _secondPlayerController;
     private ChargeMeter _firstPlayerChargeMeter;
@@ -73,10 +75,12 @@ public final class GameController {
         _frame.setLayout(new BorderLayout());
 
         _volleyballCourt = new VolleyballCourt();
+        _sky = new Sky();
 
         _ball = new Ball(new Vector2(Positions.BALL_FIRST_PLAYER_SERVE_POSITION));
 
         _frame.add(_volleyballCourt, BorderLayout.SOUTH);
+        _frame.add(_sky, BorderLayout.NORTH);
 
         setupPlayers();
 
