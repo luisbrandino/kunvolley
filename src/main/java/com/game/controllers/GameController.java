@@ -44,6 +44,9 @@ public final class GameController {
     private Player _secondPlayer;
     private Ball _ball;
 
+    private int _firstPlayerPoints = 0;
+    private int _secondPlayerPoints = 0;
+
     private final Cooldown _intermissionCooldown;
 
     private final VolleyballCourt _volleyballCourt;
@@ -68,14 +71,14 @@ public final class GameController {
         Renderers.addRenderer(ChargeMeter.class.getName(), new ChargeMeterRenderer());
 
         _frame = new JFrame();
-    
+
         _frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         _frame.setSize(WIDTH, HEIGHT);
         _frame.setResizable(false);
         _frame.setLayout(new BorderLayout());
 
         _volleyballCourt = new VolleyballCourt();
-        _sky = new Sky();
+        _sky = new Sky(this);
 
         _ball = new Ball(new Vector2(Positions.BALL_FIRST_PLAYER_SERVE_POSITION));
 
@@ -85,7 +88,7 @@ public final class GameController {
         setupPlayers();
 
         Net net = new Net(new Vector2(Positions.NET_POSITION));
-        
+
         _volleyballCourt.addEntity(_secondPlayer);
         _volleyballCourt.addEntity(_secondPlayerChargeMeter);
         _volleyballCourt.addEntity(net);
@@ -108,36 +111,31 @@ public final class GameController {
         startRound();
     }
 
-    private void setupPlayers()
-    {
+    private void setupPlayers() {
         PlayerSettings firstPlayerSettings = new PlayerSettings(
-            KeyEvent.VK_UP,
-            KeyEvent.VK_DOWN,
-            KeyEvent.VK_RIGHT,
-            KeyEvent.VK_LEFT,
-            KeyEvent.VK_ENTER,
-            -1
-        );
+                KeyEvent.VK_UP,
+                KeyEvent.VK_DOWN,
+                KeyEvent.VK_RIGHT,
+                KeyEvent.VK_LEFT,
+                KeyEvent.VK_ENTER,
+                -1);
 
         PlayerSettings secondPlayerSettings = new PlayerSettings(
-            KeyEvent.VK_W,
-            KeyEvent.VK_S,
-            KeyEvent.VK_D,
-            KeyEvent.VK_A,
-            KeyEvent.VK_SPACE,
-            1
-        );
+                KeyEvent.VK_W,
+                KeyEvent.VK_S,
+                KeyEvent.VK_D,
+                KeyEvent.VK_A,
+                KeyEvent.VK_SPACE,
+                1);
 
         Field firstPlayerField = new Field(
-            new Vector2(175, 370),
-            new Vector2(580, 245),
-            true
-        );
+                new Vector2(175, 370),
+                new Vector2(580, 245),
+                true);
 
         Field secondPlayerField = new Field(
-            new Vector2(175, 5),
-            new Vector2(580, 160)
-        );
+                new Vector2(175, 5),
+                new Vector2(580, 160));
 
         _firstPlayer = new Player(new Vector2(Positions.FIRST_PLAYER_SERVE_POSITION));
         _secondPlayer = new Player(new Vector2(Positions.SECOND_PLAYER_SERVE_POSITION));
@@ -165,44 +163,41 @@ public final class GameController {
         _turnManager = new TurnManager(players);
     }
 
-    private void startRound()
-    {
+    private void startRound() {
         _firstPlayer.position = new Vector2(Positions.FIRST_PLAYER_SERVE_POSITION);
         _secondPlayer.position = new Vector2(Positions.SECOND_PLAYER_SERVE_POSITION);
-        
+
         if (_currentGameState == GameState.FIRST_PLAYER_SERVE)
             _ball.position = new Vector2(Positions.BALL_FIRST_PLAYER_SERVE_POSITION);
         else if (_currentGameState == GameState.SECOND_PLAYER_SERVE)
             _ball.position = new Vector2(Positions.BALL_SECOND_PLAYER_SERVE_POSITION);
     }
 
-    public GameState getGameState()
-    {
+    public GameState getGameState() {
         return _currentGameState;
     }
 
-    public void setGameState(GameState gameState)
-    {
+    public void setGameState(GameState gameState) {
         _currentGameState = gameState;
     }
 
-    public Ball getBall()
-    {
+    public Ball getBall() {
         return _ball;
     }
 
-    public TurnManager getTurnManager()
-    {
+    public TurnManager getTurnManager() {
         return _turnManager;
     }
 
     private Player findWinner() {
-        boolean hasBallFallenOnFirstPlayerField = _firstPlayerController.getPlayerField().isWithinBounds(_ball.position);
+        boolean hasBallFallenOnFirstPlayerField = _firstPlayerController.getPlayerField()
+                .isWithinBounds(_ball.position);
 
         if (hasBallFallenOnFirstPlayerField)
             return _secondPlayer;
 
-        boolean hasBallFallenOnSecondPlayerField = _secondPlayerController.getPlayerField().isWithinBounds(_ball.position);
+        boolean hasBallFallenOnSecondPlayerField = _secondPlayerController.getPlayerField()
+                .isWithinBounds(_ball.position);
 
         if (hasBallFallenOnSecondPlayerField)
             return _firstPlayer;
@@ -212,8 +207,8 @@ public final class GameController {
 
     private void handleWhenRoundIsOver() {
         if (!_intermissionCooldown.ready())
-                return;
-            
+            return;
+
         Player winner = findWinner();
 
         GameState serveStartsWith;
@@ -226,8 +221,16 @@ public final class GameController {
         _turnManager.setNextTurnTo(playerServingIndex);
         _firstPlayer.setState(PlayerState.IDLE_BACK);
         _secondPlayer.setState(PlayerState.IDLE_FRONT);
-    
+
         startRound();
+    }
+
+    public int getFirstPlayerPoints() {
+        return _firstPlayerPoints;
+    }
+
+    public int getSecondPlayerPoints() {
+        return _secondPlayerPoints;
     }
 
     public void update() {
@@ -240,13 +243,18 @@ public final class GameController {
         _secondPlayerChargeMeter.update();
         _ball.update();
         _frame.repaint();
- 
+
         if (!_ball.isMoving() && _currentGameState == GameState.PLAYING) {
             setGameState(GameState.ROUND_IS_OVER);
-            
+
+            Player winner = findWinner();
+
+            _firstPlayerPoints = winner == _firstPlayer ? _firstPlayerPoints + 1 : _firstPlayerPoints;
+            _secondPlayerPoints = winner == _secondPlayer ? _secondPlayerPoints + 1 : _secondPlayerPoints;
+
             _firstPlayerController.updateIdleState();
             _secondPlayerController.updateIdleState();
-            
+
             _intermissionCooldown.start();
         }
     }
