@@ -7,6 +7,7 @@ import com.game.entities.Ball;
 import com.game.entities.ChargeMeter;
 import com.game.entities.Net;
 import com.game.entities.Player;
+import com.game.entities.ServeDirection;
 import com.game.enums.GameState;
 import com.game.enums.PlayerState;
 import com.game.managers.SoundManager;
@@ -16,6 +17,7 @@ import com.game.renderers.ChargeMeterRenderer;
 import com.game.renderers.NetRenderer;
 import com.game.renderers.PlayerRenderer;
 import com.game.renderers.Renderers;
+import com.game.renderers.ServeDirectionRenderer;
 import com.game.scenes.Sky;
 import com.game.scenes.VolleyballCourt;
 import com.game.settings.PlayerSettings;
@@ -55,6 +57,8 @@ public final class GameController {
     private PlayerController _secondPlayerController;
     private ChargeMeter _firstPlayerChargeMeter;
     private ChargeMeter _secondPlayerChargeMeter;
+    private ServeDirection _firstPlayerServeDirection;
+    private ServeDirection _secondPlayerServeDirection;
 
     private GameState _currentGameState;
 
@@ -69,6 +73,7 @@ public final class GameController {
         Renderers.addRenderer(Ball.class.getName(), new BallRenderer());
         Renderers.addRenderer(Net.class.getName(), new NetRenderer());
         Renderers.addRenderer(ChargeMeter.class.getName(), new ChargeMeterRenderer());
+        Renderers.addRenderer(ServeDirection.class.getName(), new ServeDirectionRenderer());
 
         _frame = new JFrame();
 
@@ -95,6 +100,8 @@ public final class GameController {
         _volleyballCourt.addEntity(_ball);
         _volleyballCourt.addEntity(_firstPlayer);
         _volleyballCourt.addEntity(_firstPlayerChargeMeter);
+        _volleyballCourt.addEntity(_firstPlayerServeDirection);
+        _volleyballCourt.addEntity(_secondPlayerServeDirection);
 
         setGameState(GameState.FIRST_PLAYER_SERVE);
 
@@ -148,6 +155,16 @@ public final class GameController {
 
         _firstPlayerChargeMeter = new ChargeMeter(_firstPlayer);
         _secondPlayerChargeMeter = new ChargeMeter(_secondPlayer);
+
+        _firstPlayerServeDirection = new ServeDirection();
+        _secondPlayerServeDirection = new ServeDirection();
+        _secondPlayerServeDirection.isInverted = true;
+
+        _firstPlayerServeDirection.position = new Vector2(_firstPlayer.position.x + 20, _firstPlayer.position.y - 20);
+        _secondPlayerServeDirection.position = new Vector2(_secondPlayer.position.x + 20, _secondPlayer.position.y + 55);
+
+        _firstPlayer.setServeDirction(_firstPlayerServeDirection);
+        _secondPlayer.setServeDirction(_secondPlayerServeDirection);
 
         _firstPlayer.setChargeMeter(_firstPlayerChargeMeter);
         _secondPlayer.setChargeMeter(_secondPlayerChargeMeter);
@@ -231,6 +248,13 @@ public final class GameController {
 
     public int getSecondPlayerPoints() {
         return _secondPlayerPoints;
+    }
+
+    public boolean isPlayerServing(Player player) {
+        if (player == _firstPlayer)
+            return _currentGameState == GameState.FIRST_PLAYER_SERVE;
+
+        return _currentGameState == GameState.SECOND_PLAYER_SERVE;
     }
 
     public void update() {

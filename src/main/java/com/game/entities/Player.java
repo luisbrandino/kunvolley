@@ -16,6 +16,8 @@ public final class Player implements IEntity {
 
     private ChargeMeter _chargeMeter;
 
+    private ServeDirection _serveDirection;
+
     private PlayerAnimation _animation;
 
     public Player() {
@@ -26,6 +28,14 @@ public final class Player implements IEntity {
     public Player(Vector2 position) {
         this.position = position;
         _animation = new PlayerAnimation();
+    }
+
+    public void setServeDirction(ServeDirection serveDirection) {
+        _serveDirection = serveDirection;
+    }
+
+    public ServeDirection getServeDirection() {
+        return _serveDirection;
     }
 
     public void setChargeMeter(ChargeMeter chargeMeter) {

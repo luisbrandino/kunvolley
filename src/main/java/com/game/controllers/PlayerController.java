@@ -9,6 +9,7 @@ import java.util.Map;
 import com.game.entities.Ball;
 import com.game.entities.ChargeMeter;
 import com.game.entities.Player;
+import com.game.entities.ServeDirection;
 import com.game.enums.GameState;
 import com.game.enums.PlayerState;
 import com.game.settings.PlayerSettings;
@@ -26,6 +27,10 @@ public final class PlayerController implements KeyListener {
 
     private final Player _player;
     private final Field _playerField;
+
+    private double _currentDirection = 0;
+    private boolean _isChangingDirectionToTheLeft = false;
+    private boolean _isChangingDirectionToTheRight = false;
     
     private static final Map<PlayerState, PlayerState> _movementToIdleStateMap = new HashMap<>();
     
@@ -74,6 +79,8 @@ public final class PlayerController implements KeyListener {
         startPass(pressedKey);
         
         startServe(pressedKey);
+
+        startChangingServeDirection(pressedKey);
     }
 
     @Override
@@ -83,6 +90,8 @@ public final class PlayerController implements KeyListener {
         pass(e.getKeyCode());
 
         serve(e.getKeyCode());
+
+        stopChangingServeDirection(e.getKeyCode());
     }
 
     public void move(int pressedKey)
@@ -125,8 +134,9 @@ public final class PlayerController implements KeyListener {
             return;
 
         ChargeMeter chargeMeter = _player.getChargeMeter();
+        ServeDirection serveDirection = _player.getServeDirection();
 
-        float direction = RandomGenerator.nextFloat(-0.5f, 0.5f);
+        float direction = (float) -_currentDirection;
         float chargingDuration = _player.getChargeMeter().getLastChargeDuration();
         float force = Math.min(chargingDuration, chargeMeter.MAX_CHARGE_DURATION) / chargeMeter.MAX_CHARGE_DURATION;
 
@@ -134,6 +144,10 @@ public final class PlayerController implements KeyListener {
         _game.getBall().getBallSoundManager().playRandom();
         _game.getTurnManager().nextTurn();
         _game.setGameState(GameState.PLAYING);
+
+        serveDirection.isVisible = false;
+        serveDirection.rotation = 0;
+        _currentDirection = 0;
     }
 
     public void startServe(int pressedKey)
@@ -142,6 +156,7 @@ public final class PlayerController implements KeyListener {
             return;
 
         _player.getChargeMeter().startCharging();
+        _player.getServeDirection().isVisible = true;
     }
 
     public void startPass(int pressedKey)
@@ -152,9 +167,52 @@ public final class PlayerController implements KeyListener {
         _player.getChargeMeter().startCharging();
     }
 
+    private void startChangingServeDirection(int pressedKey) {
+        if (!isServing())
+            return;
+
+        boolean isPressingRightOrLeftKeys =
+            pressedKey == _settings.MOVE_RIGHT ||
+            pressedKey == _settings.MOVE_LEFT;
+
+        if (!isPressingRightOrLeftKeys)
+            return;
+
+        _isChangingDirectionToTheLeft = pressedKey == _settings.MOVE_LEFT;
+        _isChangingDirectionToTheRight = pressedKey == _settings.MOVE_RIGHT;
+    }
+
+    private void stopChangingServeDirection(int pressedKey) {
+        if (!isServing())
+            return;
+
+        boolean isPressingRightOrLeftKeys =
+            pressedKey == _settings.MOVE_RIGHT ||
+            pressedKey == _settings.MOVE_LEFT;
+
+        if (!isPressingRightOrLeftKeys)
+            return;
+
+        if (pressedKey == _settings.MOVE_LEFT)
+            _isChangingDirectionToTheLeft = false;
+        
+        if (pressedKey == _settings.MOVE_RIGHT)
+            _isChangingDirectionToTheRight = false;
+    }
+
+    private void updateServeDirection() {
+        if (!_isChangingDirectionToTheLeft && !_isChangingDirectionToTheRight)
+            return;
+
+        if (_isChangingDirectionToTheLeft)
+            _currentDirection = Math.min(.3, _currentDirection + 0.05);
+        else
+            _currentDirection = Math.max(-.3, _currentDirection - 0.05);
+    }
+
     public void pass(int pressedKey)
     {
-        if ((pressedKey == _settings.SERVE || pressedKey == KeyEvent.VK_Z) && _player.getChargeMeter().isCharging())
+        if ((pressedKey == _settings.SERVE) && _player.getChargeMeter().isCharging())
             _player.getChargeMeter().stopCharging();
             
         if (!canPerformPass(pressedKey))
@@ -172,7 +230,7 @@ public final class PlayerController implements KeyListener {
     }
 
     private boolean canStartPass(int pressedKey) {
-        return (pressedKey == _settings.SERVE || pressedKey == KeyEvent.VK_Z) &&
+        return (pressedKey == _settings.SERVE) &&
             (_game.getGameState() == GameState.PLAYING) &&
             !_player.getChargeMeter().isCharging();
     }
@@ -193,7 +251,7 @@ public final class PlayerController implements KeyListener {
 
     private boolean canPerformPass(int pressedKey)
     {
-        return (pressedKey == _settings.SERVE || pressedKey == KeyEvent.VK_Z) && 
+        return (pressedKey == _settings.SERVE) && 
             _game.getGameState() == GameState.PLAYING &&
             isPlayerTurn() &&
             getPlayerDistanceFromBall(_player, _game.getBall()) <= 45;
@@ -234,6 +292,13 @@ public final class PlayerController implements KeyListener {
     }
 
     public void update() {
+        updateServeDirection();
+
+        if (_game.isPlayerServing(_player)) {
+            _player.getServeDirection().rotation = (float) _currentDirection;
+            _player.getServeDirection().isVisible = true;
+        }
+
         boolean isMoving = _horizontalSpeed != 0 || _verticalSpeed != 0;
 
         if (!isMoving) {
